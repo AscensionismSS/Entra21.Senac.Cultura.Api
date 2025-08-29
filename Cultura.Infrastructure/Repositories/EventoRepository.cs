@@ -1,6 +1,8 @@
-﻿using Cultura.Data;
+﻿// Importações necessárias para o funcionamento do código
+using Cultura.Data;
 using Cultura.Domain.Entities;
 using Cultura.Infrastructure.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +15,7 @@ namespace Cultura.Infrastructure.Repositories
     {
         private readonly ApplicationDbContext _context;
 
+
         public EventoRepository(ApplicationDbContext context)
         {
             _context = context;
@@ -21,6 +24,17 @@ namespace Cultura.Infrastructure.Repositories
         public void CreateEvento(Evento evento)
         {
             _context.Eventos.Add(evento);
+        }
+
+        public async Task<IEnumerable<Evento>> GetEventosPorUsuarioId(int usuarioId)
+        {
+            return await _context.Eventos
+                                 .Where(e => e.UsuarioId == usuarioId)
+                                 .Include(e => e.Categoria)
+                                 .Include(e => e.Endereco)
+                                 .Include(e => e.Ingressos)
+                                    .ThenInclude(i => i.TipoIngresso)
+                                 .ToListAsync();
         }
     }
 }

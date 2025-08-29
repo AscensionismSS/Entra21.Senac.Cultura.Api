@@ -1,4 +1,5 @@
 ﻿using Cultura.Application.Dtos.Input;
+using Cultura.Application.Dtos.Output;
 using Cultura.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -11,5 +12,6 @@ namespace Cultura.Application.Interfaces.Service
     public interface IEventoService
     {
         Task CreateEvento(EventoInputDto eventoDto);
+        Task<IEnumerable<EventoOutputDto>> GetEventosPorUsuarioId(int usuarioId);
     }
 }
