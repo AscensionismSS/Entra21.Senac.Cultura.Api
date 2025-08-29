@@ -10,5 +10,6 @@ namespace Cultura.Infrastructure.Repositories.Interfaces
     public interface IEventoRepository
     {
         void CreateEvento(Evento evento);
+        Task<IEnumerable<Evento>> GetEventosPorUsuarioId(int usuarioId);
     }
 }

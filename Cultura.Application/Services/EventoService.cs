@@ -1,4 +1,5 @@
 ﻿using Cultura.Application.Dtos.Input;
+using Cultura.Application.Dtos.Output;
 using Cultura.Application.Interfaces.Service;
 using Cultura.Domain.Entities;
 using Cultura.Infrastructure.Data;
@@ -104,6 +105,37 @@ namespace Cultura.Application.Services
 
             if (linhasAfetadas == 0)
                 throw new Exception("Nenhuma alteração foi salva no banco de dados.");
+        }
+
+        public async Task<IEnumerable<EventoOutputDto>> GetEventosPorUsuarioId(int usuarioId)
+        {
+            var eventos = await _eventoRepository.GetEventosPorUsuarioId(usuarioId);
+
+            return eventos.Select(e => new EventoOutputDto
+            {
+                Id = e.Id,
+                Titulo = e.Titulo,
+                Data = e.Data,
+                Categoria = e.Categoria.Nome,
+
+                Endereco = new EnderecoOutputDto
+                {
+                    Cep = e.Endereco.Cep,
+                    Estado = e.Endereco.Estado,
+                    Cidade = e.Endereco.Cidade,
+                    Bairro = e.Endereco.Bairro,
+                    Rua = e.Endereco.Rua,
+                    Numero = e.Endereco.Numero
+                },
+
+                Ingressos = e.Ingressos.Select(i => new IngressoOutputDto
+                {
+                    Id = i.Id,
+                    Preco = i.Preco,
+                    Quantidade = i.Quantidade,
+                    TipoIngresso = i.TipoIngresso.Nome
+                }).ToList()
+            }).ToList();
         }
     }
 }

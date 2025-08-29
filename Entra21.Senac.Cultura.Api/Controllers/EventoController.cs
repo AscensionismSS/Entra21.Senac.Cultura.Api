@@ -1,5 +1,6 @@
 ﻿using Cultura.Application.Dtos.Input;
 using Cultura.Application.Interfaces.Service;
+using Cultura.Domain.Entities;
 using Entra21.Senac.Cultura.Api.Filters;
 using Microsoft.AspNetCore.Mvc;
 
@@ -44,6 +45,16 @@ namespace Entra21.Senac.Cultura.Api.Controllers
                 // NUNCA retorne ex.Message ou ex.InnerException para o cliente em produção por segurança.
                 return StatusCode(500, new { message = "Ocorreu um erro interno no servidor." });
             }
+        }
+        [HttpGet("usuario/{usuarioId}")]
+        public async Task<IActionResult> GetEventosPorUsuarioId(int usuarioId)
+        {
+            var eventos = await _eventoService.GetEventosPorUsuarioId(usuarioId);
+
+            if (eventos == null || !eventos.Any())
+                return NotFound(new { Message = "Nenhum evento encontrado para este usuário." });
+
+            return Ok(eventos);
         }
     }
 }
