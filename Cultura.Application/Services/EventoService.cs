@@ -1,0 +1,109 @@
+﻿using Cultura.Application.Dtos.Input;
+using Cultura.Application.Interfaces.Service;
+using Cultura.Domain.Entities;
+using Cultura.Infrastructure.Data;
+using Cultura.Infrastructure.Interfaces.Repositorio;
+using Cultura.Infrastructure.Repositories;
+using Cultura.Infrastructure.Repositories.Interfaces;
+using Microsoft.IdentityModel.Tokens;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Cultura.Application.Services
+{
+    public class EventoService : IEventoService
+    {
+        private readonly ITipoIngressoRepository _tipoIngressoRepository;
+        private readonly IIngressoRepository _ingressoRepository;
+        private readonly IEventoRepository _eventoRepository;
+        private readonly IEnderecoService _enderecoService;
+        private readonly IUsuarioRepository _usuarioRepository;
+        private readonly ICategoriaRepository _categoriaRepository;
+        private readonly IEnderecoRepository _enderecoRepository;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly ITipoIngressoService _tipoIngressoService;
+
+        public EventoService(
+            IIngressoRepository ingressoRepository,
+            ITipoIngressoRepository tipoIngressoRepository,
+            IEventoRepository eventoRepository,
+            IEnderecoService enderecoService,
+            IUsuarioRepository usuarioRepository,
+            ICategoriaRepository categoriaRepository,
+            IEnderecoRepository enderecoRepository,
+            ITipoIngressoService tipoIngressoService,
+            IUnitOfWork unitOfWork
+        )
+        {
+            _tipoIngressoService = tipoIngressoService;
+            _ingressoRepository = ingressoRepository;
+            _tipoIngressoRepository = tipoIngressoRepository;
+            _eventoRepository = eventoRepository;
+            _enderecoService = enderecoService;
+            _usuarioRepository = usuarioRepository;
+            _categoriaRepository = categoriaRepository;
+            _enderecoRepository = enderecoRepository;
+            _unitOfWork = unitOfWork;
+        }
+
+
+        public async Task CreateEvento(EventoInputDto eventoDto)
+        {
+            // --- 1. RESOLVER DEPENDÊNCIAS (buscar entidades de apoio) ---
+            var endereco = await _enderecoService.VerificarEndereco(eventoDto.Endereco);
+
+            if (endereco == null) throw new Exception("Endereço não pôde ser encontrado ou criado.");
+
+            var usuario = await _usuarioRepository.GetUsuarioById(eventoDto.UsuarioId)
+                          ?? throw new Exception($"Usuário não encontrado.");
+
+            var categoria = await _categoriaRepository.GetCategoriaById(eventoDto.CategoriaId)
+                            ?? throw new Exception($"Categoria não encontrada.");
+
+            // --- 2. VALIDAR (Lógica de negócio DENTRO do Serviço) ---
+            var tiposIngressoIds = eventoDto.Ingressos.Select(i => i.TipoIngressoId).Distinct().ToList();
+            var tiposIngressoValidos = await _tipoIngressoRepository.GetByIdsAsync(tiposIngressoIds);
+
+            if (tiposIngressoValidos.Count != tiposIngressoIds.Count)
+            {
+                throw new Exception("Um ou mais Tipos de Ingresso fornecidos são inválidos.");
+            }
+
+
+            var evento = new Evento(
+                eventoDto.Titulo, eventoDto.Descricao, eventoDto.Data,
+                usuario.Id, categoria.Id, endereco
+            );
+
+
+            foreach (var ingressoDto in eventoDto.Ingressos)
+            {
+
+                if (ingressoDto.Preco < 0)
+                {
+                    throw new ArgumentException("O preço do ingresso não pode ser negativo.");
+                }
+
+
+                var novoIngresso = new Ingresso(
+                    ingressoDto.Preco,
+                    ingressoDto.Quantidade,
+                    ingressoDto.TipoIngressoId
+                );
+
+
+                evento.Ingressos.Add(novoIngresso);
+            }
+
+
+            _eventoRepository.CreateEvento(evento);
+            int linhasAfetadas = await _unitOfWork.CommitAsync();
+
+            if (linhasAfetadas == 0)
+                throw new Exception("Nenhuma alteração foi salva no banco de dados.");
+        }
+    }
+}

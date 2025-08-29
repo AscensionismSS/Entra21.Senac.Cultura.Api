@@ -1,0 +1,6 @@
+@Entra21.Senac.Cultura.Api_HostAddress = http://localhost:5230
+
+GET {{Entra21.Senac.Cultura.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
