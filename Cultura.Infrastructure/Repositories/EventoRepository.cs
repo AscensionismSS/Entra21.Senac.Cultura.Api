@@ -36,5 +36,16 @@ namespace Cultura.Infrastructure.Repositories
                                     .ThenInclude(i => i.TipoIngresso)
                                  .ToListAsync();
         }
+        public async Task<IEnumerable<Evento>> GetAllEventos()
+        {
+            return await _context.Eventos
+                .Include(e => e.Categoria)
+                .Include(e => e.Endereco)  
+                .Include(e => e.Ingressos)
+                    .ThenInclude(i => i.TipoIngresso)
+                .Include(e => e.Usuario)
+                .AsNoTracking()
+                .ToListAsync();
+        }
     }
 }
