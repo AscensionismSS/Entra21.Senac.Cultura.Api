@@ -1,4 +1,5 @@
 ﻿using Cultura.Application.Dtos.Input;
+using Cultura.Application.Dtos.Output;
 using Cultura.Application.Interfaces.Service;
 using Cultura.Domain.Entities;
 using Entra21.Senac.Cultura.Api.Filters;
@@ -49,5 +50,38 @@ namespace Entra21.Senac.Cultura.Api.Controllers
 
             return Ok(eventos);
         }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<EventoOutputDto>>> ObterTodosEventos()
+        {
+            var eventos = await _eventoService.ObterTodosEventos();
+            return Ok(eventos);
+        }
+
+        [HttpGet("categoria/{categoriaId}")]
+        public async Task<IActionResult> GetEventosPorCategoria(int categoriaId)
+        {
+            try
+            {
+                var eventosDto = await _eventoService.GetEventosPorCategoria(categoriaId);
+                if (eventosDto == null || !eventosDto.Any())
+                {
+                    return NotFound(new { message = "Nenhum evento encontrado para esta categoria." });
+                }
+                return Ok(eventosDto);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Erro interno do servidor: {ex.Message}" });
+            }
+        }
+
+
     }
+
+
 }

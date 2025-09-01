@@ -76,7 +76,7 @@ namespace Cultura.Application.Services
 
             var evento = new Evento(
                 eventoDto.Titulo, eventoDto.Descricao, eventoDto.Data,
-                usuario.Id, categoria.Id, endereco
+                 categoria.Id, usuario.Id, endereco
             );
 
 
@@ -137,5 +137,79 @@ namespace Cultura.Application.Services
                 }).ToList()
             }).ToList();
         }
+        public async Task<IEnumerable<EventoOutputDto>> ObterTodosEventos()
+        {
+            var eventos = await _eventoRepository.GetAllEventos();
+
+            return eventos.Select(e => new EventoOutputDto
+            {
+                Id = e.Id,
+                Titulo = e.Titulo ?? string.Empty,
+                Descricao = e.Descricao,
+                Data = e.Data,
+                Categoria = e.Categoria?.Nome ?? string.Empty,
+                Endereco = e.Endereco != null ? new EnderecoOutputDto
+                {
+                    Cep = e.Endereco.Cep,
+                    Estado = e.Endereco.Estado,
+                    Cidade = e.Endereco.Cidade,
+                    Bairro = e.Endereco.Bairro,
+                    Rua = e.Endereco.Rua,
+                    Numero = e.Endereco.Numero
+                } : null,
+                Ingressos = e.Ingressos?.Select(i => new IngressoOutputDto
+                {
+                    Id = i.Id,
+                    Preco = i.Preco,
+                    Quantidade = i.Quantidade,
+                    TipoIngresso = i.TipoIngresso?.Nome
+                }).ToList() ?? new List<IngressoOutputDto>()
+            }).ToList();
+        }
+
+
+        public async Task<IEnumerable<EventoOutputDto>> GetEventosPorCategoria(int categoriaId)
+        {
+            // 1. Validação básica da regra de negócio
+            if (categoriaId <= 0)
+            {
+                throw new ArgumentException("O ID da categoria fornecido é inválido.");
+            }
+
+            // 2. Chama o método do repositório para buscar os dados do banco
+            var eventos = await _eventoRepository.GetByCategoria(categoriaId);
+
+            // 3. Mapeia as entidades para DTOs para serem retornados pela API
+            // Isso protege suas entidades de domínio e formata os dados para o frontend.
+            var eventosDto = eventos.Select(evento => new EventoOutputDto
+            {
+                Id = evento.Id,
+                Titulo = evento.Titulo,
+                Descricao = evento.Descricao,
+                Data = evento.Data,
+                Categoria = evento.Categoria?.Nome, // Pega o nome da categoria
+                Endereco = new EnderecoOutputDto
+                {
+                    Cep = evento.Endereco.Cep,
+                    Estado = evento.Endereco.Estado,
+                    Cidade = evento.Endereco.Cidade,
+                    Bairro = evento.Endereco.Bairro,
+                    Rua = evento.Endereco.Rua,
+                    Numero = evento.Endereco.Numero
+                },
+                Ingressos = evento.Ingressos.Select(ing => new IngressoOutputDto
+                {
+                    Id = ing.Id,
+                    Preco = ing.Preco,
+                    Quantidade = ing.Quantidade,
+                    TipoIngresso = ing.TipoIngresso?.Nome // Pega o nome do tipo de ingresso
+                }).ToList()
+            });
+
+            // 4. Retorna a lista de DTOs
+            return eventosDto;
+        }
     }
+
 }
+

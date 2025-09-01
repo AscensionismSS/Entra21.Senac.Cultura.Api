@@ -11,5 +11,8 @@ namespace Cultura.Infrastructure.Repositories.Interfaces
     {
         void CreateEvento(Evento evento);
         Task<IEnumerable<Evento>> GetEventosPorUsuarioId(int usuarioId);
+        Task<IEnumerable<Evento>> GetAllEventos();
+
+        Task<IEnumerable<Evento>> GetByCategoria(int categoriaId);
     }
 }

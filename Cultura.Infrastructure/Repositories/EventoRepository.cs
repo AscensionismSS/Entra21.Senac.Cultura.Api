@@ -36,5 +36,33 @@ namespace Cultura.Infrastructure.Repositories
                                     .ThenInclude(i => i.TipoIngresso)
                                  .ToListAsync();
         }
+
+        public async Task<IEnumerable<Evento>> GetAllEventos()
+        {
+            return await _context.Eventos
+                .Include(e => e.Categoria)
+                .Include(e => e.Endereco)  
+                .Include(e => e.Ingressos)
+                    .ThenInclude(i => i.TipoIngresso)
+                .Include(e => e.Usuario)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Evento>> GetByCategoria(int categoriaId)
+        {
+            
+            return await _context.Eventos
+                // 1. Inclui os dados da entidade Categoria relacionada.
+                .Include(evento => evento.Categoria)
+                .Include(evento => evento.Endereco)
+
+                .Include(evento => evento.Ingressos)
+                    .ThenInclude(ingresso => ingresso.TipoIngresso)
+                .Where(evento => evento.CategoriaId == categoriaId)
+
+                .ToListAsync();
+        }
     }
 }
+
