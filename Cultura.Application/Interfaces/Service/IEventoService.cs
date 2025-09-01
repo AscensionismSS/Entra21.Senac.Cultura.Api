@@ -13,5 +13,6 @@ namespace Cultura.Application.Interfaces.Service
     {
         Task CreateEvento(EventoInputDto eventoDto);
         Task<IEnumerable<EventoOutputDto>> GetEventosPorUsuarioId(int usuarioId);
+        Task<IEnumerable<EventoOutputDto>> ObterTodosEventos();
     }
 }

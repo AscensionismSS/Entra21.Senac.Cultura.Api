@@ -1,4 +1,5 @@
 ﻿using Cultura.Application.Dtos.Input;
+using Cultura.Application.Dtos.Output;
 using Cultura.Application.Interfaces.Service;
 using Cultura.Domain.Entities;
 using Entra21.Senac.Cultura.Api.Filters;
@@ -47,6 +48,13 @@ namespace Entra21.Senac.Cultura.Api.Controllers
             if (eventos == null || !eventos.Any())
                 return NotFound(new { Message = "Nenhum evento encontrado para este usuário." });
 
+            return Ok(eventos);
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<EventoOutputDto>>> ObterTodosEventos()
+        {
+            var eventos = await _eventoService.ObterTodosEventos();
             return Ok(eventos);
         }
     }

@@ -137,5 +137,34 @@ namespace Cultura.Application.Services
                 }).ToList()
             }).ToList();
         }
+        public async Task<IEnumerable<EventoOutputDto>> ObterTodosEventos()
+        {
+            var eventos = await _eventoRepository.GetAllEventos();
+
+            return eventos.Select(e => new EventoOutputDto
+            {
+                Id = e.Id,
+                Titulo = e.Titulo ?? string.Empty,
+                Descricao = e.Descricao,
+                Data = e.Data,
+                Categoria = e.Categoria?.Nome ?? string.Empty,
+                Endereco = e.Endereco != null ? new EnderecoOutputDto
+                {
+                    Cep = e.Endereco.Cep,
+                    Estado = e.Endereco.Estado,
+                    Cidade = e.Endereco.Cidade,
+                    Bairro = e.Endereco.Bairro,
+                    Rua = e.Endereco.Rua,
+                    Numero = e.Endereco.Numero
+                } : null,
+                Ingressos = e.Ingressos?.Select(i => new IngressoOutputDto
+                {
+                    Id = i.Id,
+                    Preco = i.Preco,
+                    Quantidade = i.Quantidade,
+                    TipoIngresso = i.TipoIngresso?.Nome
+                }).ToList() ?? new List<IngressoOutputDto>()
+            }).ToList();
+        }
     }
 }
